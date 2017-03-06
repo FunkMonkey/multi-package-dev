@@ -1,3 +1,2 @@
 #!/usr/bin/env node
-
-var symlinkDedupe = require( '../build/commands' ).default;
+require( '../build/commands/multi-package-dev' );

@@ -1,7 +1,7 @@
-import installWithDevDependencies from './install-with-devdependencies';
-import linkLocal from './link-local';
+import install from './install';
+import linklocal from './linklocal';
 
 export {
-  installWithDevDependencies,
-  linkLocal
+  install,
+  linklocal
 };
