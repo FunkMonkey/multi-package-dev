@@ -1,6 +1,8 @@
 import child_process from 'child_process';
 import path from 'path';
 import compareVersions from 'compare-versions';
+import stringArgv from 'string-argv';
+import R from 'ramda';
 import Rx from 'rx';
 
 import getLocalPackageInfos from './package/get-infos';
@@ -21,14 +23,22 @@ const isNodeBelow_5_7 = compareVersions( process.versions.node, '5.7.0' ) < 0;
  * @param  {string}                     workingDir
  * @return {Observable.<ChildProcess>}           Observable with single element
  */
-function spawnYarnInstall( workingDir ) {
+function spawnInstallCommand( workingDir, installCommand ) {
   return Rx.Observable.create( ( observer ) => {
-    print( 'yarn install', workingDir );
+    print( `executing install command: '${installCommand}'`, workingDir );
+    const [commandName, ...commandArgs] = stringArgv( installCommand );
+
 
     // we need 'shell' for windows ( only works in node >= 5.7.0 )
-    const commandName = ( isWin && isNodeBelow_5_7 ) ? 'yarn.cmd' : 'yarn';
-    const ls = child_process.spawn( commandName, ['install'], { cwd: workingDir, env: process.env, shell: true } );
-    observer.onNext( ls );
+    let newCommandName = commandName;
+    if ( isWin && isNodeBelow_5_7 && commandName === 'yarn' )
+      newCommandName = 'yarn.cmd'
+    else if ( isWin && isNodeBelow_5_7 && commandName === 'npm' )
+      newCommandName = 'npm.cmd';
+
+    const ls = child_process.spawn( newCommandName, commandArgs,
+                                    { cwd: workingDir, env: process.env, shell: true } );
+    // observer.onNext( ls );
 
     ls.stdout.on( 'data', ( data ) => {
       print( data.toString() );
@@ -39,7 +49,7 @@ function spawnYarnInstall( workingDir ) {
     } );
 
     ls.on( 'close', ( code ) => {
-      print( `'yarn install' exited with code ${code}` );
+      print( `'${installCommand}' exited with code ${code}` );
       if ( code === 0 )
         observer.onCompleted();
       else
@@ -48,7 +58,7 @@ function spawnYarnInstall( workingDir ) {
   } );
 }
 
-export default function yarnInstallWithDevDependencies( workingDir ) {
+export default function install( workingDir, options ) {
   const workspacePackageJSON$ = readFile( path.join( workingDir, 'package.json' ), 'utf8' )
                                   .map( JSON.parse );
 
@@ -57,21 +67,27 @@ export default function yarnInstallWithDevDependencies( workingDir ) {
     .shareReplay( 1 )
     .flatMap( Rx.Observable.fromArray );
 
-  const tasks = [
+  const preInstallTasks = options.devDependencies ? [
     localPackageInfos$
       .tap( pkgInfo => print( `Backing up 'package.json' of local package '${pkgInfo.name}'` ) )
       .flatMap( pkgInfo => backupPackageJSON( pkgInfo.localPath ) ),
 
     localPackageInfos$
       .tap( pkgInfo => print( `Rewriting 'package.json' of local package '${pkgInfo.name}'` ) )
-      .flatMap( pkgInfo => rewritePackageJSON( pkgInfo.localPath ) ),
+      .flatMap( pkgInfo => rewritePackageJSON( pkgInfo.localPath ) )
+  ] : [];
 
-    spawnYarnInstall( workingDir ),
+  const installTasks = [
+    spawnInstallCommand( workingDir, options.installCommand )
+  ];
 
+  const postInstallTasks = options.devDependencies ? [
     localPackageInfos$
       .tap( pkgInfo => print( `Restoring 'package.json' of local package '${pkgInfo.name}'` ) )
       .flatMap( pkgInfo => restorePackageJSON( pkgInfo.localPath ) )
-  ];
+  ] : [];
+
+  const tasks = R.unnest( [ preInstallTasks, installTasks, postInstallTasks ] );
 
   return executeInSequence( tasks );
 }

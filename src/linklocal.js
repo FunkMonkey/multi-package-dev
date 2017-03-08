@@ -30,7 +30,7 @@ export default function yarnInstallWithDevDependencies( workingDir ) {
 
     // re-create symlinks
     localPackageInfos$
-      .tap( pkgInfo => print( `Creating symlink from '${pkgInfo.localPath}' to '${pkgInfo.installedPath}'` ) )
+      .tap( pkgInfo => print( `Creating symlink from '${pkgInfo.installedPath}' to '${pkgInfo.localPath}'` ) )
       .flatMap( pkgInfo => symlink( pkgInfo.localPath, pkgInfo.installedPath, 'junction' ) ),
   ];
 
