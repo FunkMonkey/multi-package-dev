@@ -1,6 +1,6 @@
 import path from 'path';
 import R from 'ramda';
-import { readFile, writeFile } from '../fs-rx';
+import { readFile, writeFile } from '../utils/fs-rx';
 
 export default function ( packagePath ) {
   const packageJSONPath = path.join( packagePath, 'package.json' );

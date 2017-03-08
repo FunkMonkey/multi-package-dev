@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require( '../build/commands/multi-package-dev' );
+require( '../build/cli/multi-package-dev' );

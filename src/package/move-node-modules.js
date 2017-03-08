@@ -1,6 +1,6 @@
 import path from 'path';
 import Rx from 'rx';
-import { exists, move } from '../fs-rx';
+import { exists, move } from '../utils/fs-rx';
 
 /**
  * Moves the `node_modules` sub-folder from one directory to another
