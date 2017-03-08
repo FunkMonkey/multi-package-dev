@@ -38,7 +38,6 @@ function spawnInstallCommand( workingDir, installCommand ) {
 
     const ls = child_process.spawn( newCommandName, commandArgs,
                                     { cwd: workingDir, env: process.env, shell: true } );
-    observer.onNext( ls );
 
     ls.stdout.on( 'data', ( data ) => {
       print( data.toString() );
@@ -89,5 +88,5 @@ export default function install( workingDir, options ) {
 
   const tasks = R.unnest( [ preInstallTasks, installTasks, postInstallTasks ] );
 
-  return executeInSequence( tasks );
+  return executeInSequence( tasks ).ignoreElements();
 }

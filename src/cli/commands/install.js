@@ -25,7 +25,5 @@ export function handler( parsedArgs ) {
     devDependencies: parsedArgs.devDependencies
   };
 
-  install( process.cwd(), options )
-    .ignoreElements()
-    .subscribe( createCLIObserver() );
+  install( process.cwd(), options ).subscribe( createCLIObserver() );
 }

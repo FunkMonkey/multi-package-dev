@@ -34,5 +34,5 @@ export default function yarnInstallWithDevDependencies( workingDir ) {
       .flatMap( pkgInfo => symlink( pkgInfo.localPath, pkgInfo.installedPath, 'junction' ) ),
   ];
 
-  return executeInSequence( tasks );
+  return executeInSequence( tasks ).ignoreElements();
 }
