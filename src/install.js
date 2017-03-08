@@ -38,7 +38,7 @@ function spawnInstallCommand( workingDir, installCommand ) {
 
     const ls = child_process.spawn( newCommandName, commandArgs,
                                     { cwd: workingDir, env: process.env, shell: true } );
-    // observer.onNext( ls );
+    observer.onNext( ls );
 
     ls.stdout.on( 'data', ( data ) => {
       print( data.toString() );

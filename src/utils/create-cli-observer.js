@@ -7,6 +7,7 @@ export default function () {
     },
     ( el ) => {
       console.error( el );
+      console.error( el.stack );
     },
     ( ) => {
     }
